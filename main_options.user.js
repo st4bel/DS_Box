@@ -13,6 +13,11 @@
 // @downloadURL -
 // ==/UserScript==
 
+/*
+ * v0.1: erster Aufbau.
+ * v0.2: tba
+ */
+
 var $ = typeof unsafeWindow != 'undefined' ? unsafeWindow.$ : window.$;
 
 $(function(){
@@ -68,5 +73,20 @@ $(function(){
 
             settingsDivVisible=!settingsDivVisible;
         }
+
+        //Head
+        $("<h3>").text("DS_Box Meta Optionen").appendTo(settingsDiv);
+        $("<span>").text("Legt die Reihenfolge fest, in der die Scripte ausgeführt werden sollen. Für eine genaue Anleitung bitte auf 'Anleitung' klicken").appendTo(settingsDiv);
+
+        //Settings
+        var settingsTable=$("<table>").appendTo(settingsDiv);
+
+        //Foot
+        $("<button>").text("Schließen").click(function(){
+            toggleSettingsVisibility();
+        }).appendTo(settingsDiv);
+        $("<button>").text("Anleitung").click(function(){
+            window.open(_Anleitungslink, '_blank');
+        }).appendTo(settingsDiv);
     }
 });
