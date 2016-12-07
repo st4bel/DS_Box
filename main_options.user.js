@@ -21,6 +21,7 @@
 var $ = typeof unsafeWindow != 'undefined' ? unsafeWindow.$ : window.$;
 var _version = "0.1";
 var _Anleitungslink = "#";
+var _scripts = {"0":"katascript_","1":"Att_Renamer_","2":"Flaggen_"}
 
 $(function(){
     var storage = localStorage;
@@ -95,6 +96,38 @@ $(function(){
         $("<span>").text("Legt die Reihenfolge fest, in der die Scripte ausgeführt werden sollen. Für eine genaue Anleitung bitte auf 'Anleitung' klicken.\n").appendTo(settingsDiv);
 
         //Settings
+        //adding new entry:
+        var new_entry_table = $("<table>").appendTo(settingsDiv);
+
+        var select_new_entry = $("<select>")
+        .attr("name",id);
+        for(var id in _scripts){
+            $("<option>")
+            .text(_scripts[id])
+            .attr("value",id)
+            .appendTo($(select_new_entry));
+        }
+        $("option[value=0]",select_new_entry).prop("selected",true);
+
+        var button_new_entry = $("<button>")
+        .text("Hinzufügen")
+        .appendTo(settingsDiv)
+        .click(function(){
+            var new_entry = {"scriptid":_scripts[$("option:selected",select_new_entry).val()],"runtime":"10","pausetime":"-1","groupid":"0"}
+            console.log(storageGet("manager"))
+            var manager = JSON.parse(storageGet("manager"));
+            manager[Object.keys(manager).length] = new_entry;
+            storageSet("manager",JSON.stringify(manager));
+            scriptmanager_table.empty();
+            init_scriptmanager_table();
+        })
+
+
+        $("<tr>").appendTo(new_entry_table)
+        .append($("<td>").append($("<span>").text("Neuen Aufgabe hinzufügen: ")))
+        .append($("<td>").append(select_new_entry))
+        .append($("<td>").append(button_new_entry));
+
         var scriptmanager_table=$("<table>").appendTo(settingsDiv).attr("id","scriptmanager_table");
         init_scriptmanager_table();
 
