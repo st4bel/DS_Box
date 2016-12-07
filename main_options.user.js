@@ -33,7 +33,8 @@ $(function(){
     function storageSet(key,val) {
         storage.setItem(storagePrefix+key,val);
     }
-    storageSet("manager",storageGet("manager",'{"att":{"runtime":"10","pausetime":"-1","groupid":"0"}}'));
+    //storageSet("manager",storageGet("manager",'{0:{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"}}'));
+    storageSet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"},"1":{"scriptid":"btt","runtime":"20","pausetime":"5","groupid":"0"},"2":{"scriptid":"ctt","runtime":"30","pausetime":"-1","groupid":"0"}}');
     storageSet("groups",storageGet("groups",'{"0":"alle"}'));
 
     init_UI();
@@ -94,14 +95,8 @@ $(function(){
         $("<span>").text("Legt die Reihenfolge fest, in der die Scripte ausgeführt werden sollen. Für eine genaue Anleitung bitte auf 'Anleitung' klicken.\n").appendTo(settingsDiv);
 
         //Settings
-        var scriptmanager_table=$("<table>").appendTo(settingsDiv);
-        //script/runtime/pausetime/groupid/delete
-        //header:
-        $("<tr>").append($("<th>").text("script_id")).append($("<th>").text("max. runtime in min")).append($("<th>").text("pausetime")).append($("<th>").text("groupid")).append($("<th>").text("delete"))
-        .appendTo(scriptmanager_table);
-        for(var id in JSON.parse(storageGet("manager"))){
-            addRowToScriptmanager(id);
-        }
+        var scriptmanager_table=$("<table>").appendTo(settingsDiv).attr("id","scriptmanager_table");
+        init_scriptmanager_table();
 
         $("<button>").text("Gruppen aktualisieren").click(function(){
             readGroups();
@@ -115,9 +110,19 @@ $(function(){
             window.open(_Anleitungslink, '_blank');
         }).appendTo(settingsDiv);
         //UI - functions
+        function init_scriptmanager_table(){
+            //header:
+            $("<tr>").append($("<th>").text("script_id")).append($("<th>").text("max. runtime in min")).append($("<th>").text("pausetime")).append($("<th>").text("groupid")).append($("<th>").text("actions"))
+            .appendTo(scriptmanager_table);
+            //body
+            var manager = JSON.parse(storageGet("manager"));
+            for(var id in manager){
+                addRowToScriptmanager(id);
+            }
+        }
         function addRowToScriptmanager(id){
             var manager = JSON.parse(storageGet("manager"))[id];
-            var script_cell = $("<td>").text("ID: "+id);
+            var script_cell = $("<td>").text("ID: "+manager.scriptid);
             var runtime_cell = $("<td>")
             .append(
                 $("<input>")
@@ -163,12 +168,44 @@ $(function(){
                 .appendTo($("select",groupselect_cell));
             }
             $("option[value="+manager.groupid+"]",groupselect_cell).prop("selected",true);
-            var other_cell = $("<td>");
+            var other_cell = $("<td>")
+            .append(
+                $("<span>").text("< ").css("cursor","pointer").attr("name",id).hover(function (){$(this).css("text-decoration", "underline");},function(){$(this).css("text-decoration", "none");})
+                .click(function(){
+                    var currentrow_id = parseInt($(this).attr("name"));
+                    moveManagerItem(-1,currentrow_id);
+                    scriptmanager_table.empty();
+                    init_scriptmanager_table();
+                }))
+            .append(
+                $("<span>").text(">").css("cursor","pointer").attr("name",id).hover(function (){$(this).css("text-decoration", "underline");},function(){$(this).css("text-decoration", "none");})
+                .click(function(){
+                    var currentrow_id = parseInt($(this).attr("name"));
+                    moveManagerItem(1,currentrow_id);
+                    scriptmanager_table.empty();
+                    init_scriptmanager_table();
+                })
+            );
 
             //appending everything
             $("<tr>").attr("name",id)
             .append(script_cell).append(runtime_cell).append(pausetime_cell).append(groupselect_cell).append(other_cell)
             .appendTo(scriptmanager_table);
+        }
+    }
+    function moveManagerItem(asc_desc,id){
+        var manager = JSON.parse(storageGet("manager"));
+        if(id+asc_desc>=0&&id+asc_desc<=Object.keys(manager).length){
+            console.log("z: "+storageGet("manager"));
+            id = parseInt(id);
+            current  = manager[""+id];
+            manager[""+id] = manager[""+(id+asc_desc)];
+            manager[""+(id+asc_desc)] = current;
+            console.log("a: "+storageGet("manager"));
+            storageSet("manager",JSON.stringify(manager));
+            console.log("b: "+storageGet("manager"));
+        }else{
+            alert("Unable to move "+manager[id].scriptid+" in that direction! It might be first or last.");
         }
     }
     function readGroups(){
