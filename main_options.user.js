@@ -21,7 +21,7 @@
 var $ = typeof unsafeWindow != 'undefined' ? unsafeWindow.$ : window.$;
 var _version = "0.1";
 var _Anleitungslink = "#";
-var _scripts = {"0":"katascript_","1":"Att_Renamer_","2":"Flaggen_"}
+var _scripts = {"0":"katascript_","1":"Att_Renamer_","2":"Flaggen_"};
 
 $(function(){
     var storage = localStorage;
@@ -34,8 +34,8 @@ $(function(){
     function storageSet(key,val) {
         storage.setItem(storagePrefix+key,val);
     }
-    //storageSet("manager",storageGet("manager",'{0:{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"}}'));
-    storageSet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"},"1":{"scriptid":"btt","runtime":"20","pausetime":"5","groupid":"0"},"2":{"scriptid":"ctt","runtime":"30","pausetime":"-1","groupid":"0"}}');
+    storageSet("manager",storageGet("manager",'{0:{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"}}'));
+    //storageSet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"},"1":{"scriptid":"btt","runtime":"20","pausetime":"5","groupid":"0"},"2":{"scriptid":"ctt","runtime":"30","pausetime":"-1","groupid":"0"}}');
     storageSet("groups",storageGet("groups",'{"0":"alle"}'));
 
     init_UI();
@@ -92,10 +92,12 @@ $(function(){
         }
 
         //Head
-        $("<h3>").text("DS_Box Meta Optionen, ").appendTo(settingsDiv).append($("<a>").attr("href","https://raw.githubusercontent.com/st4bel/DS_Box/master/main_options.user.js").text("Version "+_version));
-        $("<span>").text("Legt die Reihenfolge fest, in der die Scripte ausgeführt werden sollen. Für eine genaue Anleitung bitte auf 'Anleitung' klicken.\n").appendTo(settingsDiv);
-
+        $("<h2>").text("DS_Box Meta Optionen, ").appendTo(settingsDiv).append($("<a>").attr("href","https://raw.githubusercontent.com/st4bel/DS_Box/master/main_options.user.js").text("Version "+_version));
+        $("<span>").text("'DS_Box' ist ein Meta-Script zur hintereinander-Ausführung von bestimmten ").appendTo(settingsDiv).append($("<a>").attr("href","https://github.com/st4bel/DS_Box").text("Scripts."));
         //Settings
+
+        $("<h3>").text("Reihenfolge verwalten").appendTo(settingsDiv);
+        $("<span>").text("Legt die Reihenfolge fest, in der die Scripte ausgeführt werden sollen. Für eine genaue Anleitung bitte auf 'Anleitung' klicken.\n");
         //adding new entry:
         var new_entry_table = $("<table>").appendTo(settingsDiv);
 
@@ -113,14 +115,14 @@ $(function(){
         .text("Hinzufügen")
         .appendTo(settingsDiv)
         .click(function(){
-            var new_entry = {"scriptid":_scripts[$("option:selected",select_new_entry).val()],"runtime":"10","pausetime":"-1","groupid":"0"}
-            console.log(storageGet("manager"))
+            var new_entry = {"scriptid":_scripts[$("option:selected",select_new_entry).val()],"runtime":"10","pausetime":"-1","groupid":"0"};
             var manager = JSON.parse(storageGet("manager"));
             manager[Object.keys(manager).length] = new_entry;
             storageSet("manager",JSON.stringify(manager));
+            console.log(storageGet("manager"));
             scriptmanager_table.empty();
             init_scriptmanager_table();
-        })
+        });
 
 
         $("<tr>").appendTo(new_entry_table)
@@ -135,6 +137,10 @@ $(function(){
             readGroups();
         }).appendTo(settingsDiv);
         $("<br>").appendTo(settingsDiv);
+
+        $("<h3>").text("Start / Stop").appendTo(settingsDiv);
+
+
         //Foot
         $("<button>").text("Schließen").click(function(){
             toggleSettingsVisibility();
@@ -211,14 +217,22 @@ $(function(){
                     init_scriptmanager_table();
                 }))
             .append(
-                $("<span>").text(">").css("cursor","pointer").attr("name",id).hover(function (){$(this).css("text-decoration", "underline");},function(){$(this).css("text-decoration", "none");})
+                $("<span>").text("> ").css("cursor","pointer").attr("name",id).hover(function (){$(this).css("text-decoration", "underline");},function(){$(this).css("text-decoration", "none");})
                 .click(function(){
                     var currentrow_id = parseInt($(this).attr("name"));
                     moveManagerItem(1,currentrow_id);
                     scriptmanager_table.empty();
                     init_scriptmanager_table();
-                })
-            );
+                }))
+            .append(
+                $("<span>").text(" x ").css("cursor","pointer").attr("name",id).hover(function (){$(this).css("text-decoration", "underline");},function(){$(this).css("text-decoration", "none");})
+                .click(function(){
+
+                    var currentrow_id = parseInt($(this).attr("name"));
+                    deleteManagerItem(currentrow_id);
+                    scriptmanager_table.empty();
+                    init_scriptmanager_table();
+                }));
 
             //appending everything
             $("<tr>").attr("name",id)
@@ -228,18 +242,25 @@ $(function(){
     }
     function moveManagerItem(asc_desc,id){
         var manager = JSON.parse(storageGet("manager"));
-        if(id+asc_desc>=0&&id+asc_desc<=Object.keys(manager).length){
-            console.log("z: "+storageGet("manager"));
+        if(id+asc_desc>=0&&id+asc_desc<=Object.keys(manager).length-1){
             id = parseInt(id);
             current  = manager[""+id];
             manager[""+id] = manager[""+(id+asc_desc)];
             manager[""+(id+asc_desc)] = current;
-            console.log("a: "+storageGet("manager"));
             storageSet("manager",JSON.stringify(manager));
             console.log("b: "+storageGet("manager"));
         }else{
             alert("Unable to move "+manager[id].scriptid+" in that direction! It might be first or last.");
         }
+    }
+    function deleteManagerItem(id){
+        var manager = JSON.parse(storageGet("manager"));
+        for(var i = id; i<Object.keys(manager).length-1;i++){
+            moveManagerItem(1,i);
+        }
+        delete manager[""+(Object.keys(manager).length-1)];
+        storageSet("manager",JSON.stringify(manager));
+        console.log("a: "+storageGet("manager"));
     }
     function readGroups(){
         var groups = {};
