@@ -34,7 +34,7 @@ $(function(){
     function storageSet(key,val) {
         storage.setItem(storagePrefix+key,val);
     }
-    storageSet("manager",storageGet("manager",'{0:{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"}}'));
+    storageSet("manager",storageGet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"}}'));
     //storageSet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"},"1":{"scriptid":"btt","runtime":"20","pausetime":"5","groupid":"0"},"2":{"scriptid":"ctt","runtime":"30","pausetime":"-1","groupid":"0"}}');
     storageSet("groups",storageGet("groups",'{"0":"alle"}'));
 
@@ -44,11 +44,16 @@ $(function(){
         var overview_menu = $("#overview_menu");
         var option_link = $("<a>")
         .attr("href","#")
-        .text("DS_Box")
+        .text(" "+getStatus())
         .click(function(){
             toggleSettingsVisibility();
         });
-        $("tr",overview_menu).prepend($("<td>").attr("style","min-width: 80px").append(option_link));
+        var status_symbol = $("<span>")
+        .attr("title","DS_Box Status")
+        .attr("class",getSymbolStatus())
+        .prependTo(option_link);
+        //$("tr",overview_menu).prepend($("<td>").attr("style","min-width: 80px").append(option_link));
+        $("#menu_row").prepend($("<td>").attr("class","menu-item").append(option_link));
 
         //options popup
         var settingsDivVisible = false;
@@ -280,5 +285,19 @@ $(function(){
 
         storageSet("groups",JSON.stringify(groups));
         console.log("Set groups to: "+storageGet("groups"));
+    }
+    function getStatus(){
+        var status = storageGet("status");
+
+        return "DS_Box"
+
+    }
+    function getSymbolStatus(){
+        var status = storageGet("status");
+        if(status!="idle"){
+            return "icon friend online"
+        }else{
+            return "icon friend offline"
+        }
     }
 });
