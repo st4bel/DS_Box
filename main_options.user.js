@@ -38,18 +38,23 @@ $(function(){
     //storageSet("manager",'{"0":{"scriptid":"att","runtime":"10","pausetime":"-1","groupid":"0"},"1":{"scriptid":"btt","runtime":"20","pausetime":"5","groupid":"0"},"2":{"scriptid":"ctt","runtime":"30","pausetime":"-1","groupid":"0"}}');
     storageSet("groups",storageGet("groups",'{"0":"alle"}'));
 
+    storageSet("status",storageGet("status",-1));
+    storageSet("timestamp",storageGet("timestamp","0"));
+
     init_UI();
     function init_UI(){
         //create UI_link
         var overview_menu = $("#overview_menu");
         var option_link = $("<a>")
         .attr("href","#")
+        .attr("id","option_link")
         .text(" "+getStatus())
         .click(function(){
             toggleSettingsVisibility();
         });
         var status_symbol = $("<span>")
         .attr("title","DS_Box Status")
+        .attr("id","status_symbol")
         .attr("class",getSymbolStatus())
         .prependTo(option_link);
         //$("tr",overview_menu).prepend($("<td>").attr("style","min-width: 80px").append(option_link));
@@ -131,7 +136,7 @@ $(function(){
 
 
         $("<tr>").appendTo(new_entry_table)
-        .append($("<td>").append($("<span>").text("Neuen Aufgabe hinzufügen: ")))
+        .append($("<td>").append($("<span>").text("Neue Aufgabe hinzufügen: ")))
         .append($("<td>").append(select_new_entry))
         .append($("<td>").append(button_new_entry));
 
@@ -144,7 +149,9 @@ $(function(){
         $("<br>").appendTo(settingsDiv);
 
         $("<h3>").text("Start / Stop").appendTo(settingsDiv);
-
+        $("<button>").text("Start/Stop").click(function(){
+            toogleRunning();
+        }).appendTo(settingsDiv);
 
         //Foot
         $("<button>").text("Schließen").click(function(){
@@ -287,17 +294,34 @@ $(function(){
         console.log("Set groups to: "+storageGet("groups"));
     }
     function getStatus(){
-        var status = storageGet("status");
+        var status = parseInt(storageGet("status"));
+        if(status == -1){
+            return "DS_Box";
+        }else{
+            var manager = JSON.parse(storageGet("manager"))[status];
+            return manager.scriptid;
 
-        return "DS_Box"
-
+            //TODO hier evtl noch laufzeit anzeigen..
+        }
     }
     function getSymbolStatus(){
-        var status = storageGet("status");
-        if(status!="idle"){
-            return "icon friend online"
+        var status = parseInt(storageGet("status"));
+        if(status!=-1){
+            return "icon friend online";
         }else{
-            return "icon friend offline"
+            return "icon friend offline";
         }
+    }
+    function refreshIcon(){
+        var option_link = $("#option_link");
+        var status_symbol = $("#status_symbol");
+        option_link.text(getStatus());
+        status_symbol.attr("class",getSymbolStatus()).prependTo(option_link);
+    }
+    function toogleRunning(){
+        var status = parseInt(storageGet("status"));
+        status = status==-1? 0:-1;
+        storageSet("status",status);
+        refreshIcon();
     }
 });
